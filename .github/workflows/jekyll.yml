@@ -33,15 +33,14 @@ jobs:
         run: mkdir build
 
       - name: Build website
-        uses: helaili/jekyll-action@2.5.0
+        uses: actions/jekyll-build-pages@v1
         with:
-          build_only: true
-          build_dir: build
+          destination: "./build"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./build
+          path: "./build"
 
   # Deployment job
   deploy:
