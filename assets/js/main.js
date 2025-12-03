@@ -93,7 +93,7 @@ async function github_events() {
 	try {
 		const r = await fetch("https://api.github.com/users/HTsuyoshi/events");
 		const d = await r.json();
-		let i = 1;
+		let i = 0;
 		while (i <= d.length) {
 			if (d[i].type == "PushEvent")
 				break;
