@@ -19,6 +19,7 @@ export class DynamicWindow {
   protected fontSize: number;
 
   /* Interaction */
+  private animationPop: number = 1.0;
   private animation: number = 0.1; // From 0.0 to 1.0
   private squashX: number = 1.0;
   private squashY: number = 1.0;
@@ -64,6 +65,8 @@ export class DynamicWindow {
   }
 
   public update(): void { 
+    if (this.animationPop < 1.0) this.animationPop += 0.1;
+    if (this.animationPop >= 1) this.animationPop = 1;
     if (this.ready && this.hover && (this.animation < 1.0))  this.animation += 0.1;
     if (this.ready && !this.hover && (this.animation > 0.0)) this.animation -= 0.1;
 
@@ -96,25 +99,46 @@ export class DynamicWindow {
     this.contentGray.filter(this.p.GRAY);
   }
 
+  public drawShadow(): void {
+    this.p.push();
+    this.p.translate(this.getCenterX() + 20, this.getCenterY() + 20);
+    this.p.scale(1 + (this.p.cos(this.animationPop * this.p.HALF_PI) * .1));
+    this.p.rotate(this.p.cos(this.animationPop * this.p.PI * 1.5) * .1);
+
+    this.p.fill('#414141');
+    this.p.noStroke();
+    this.p.rect(
+      -5 - (.5 * this.getWidth()),
+      -5 - (.5 * this.getHeight()),
+      10 + this.getWidth(),
+      10 + this.getHeight()
+    );
+    this.p.pop();
+  }
 
   public draw(): void {
+    this.p.push();
+    this.p.translate(this.getCenterX(), this.getCenterY());
+    this.p.scale(1 + (this.p.cos(this.animationPop * this.p.HALF_PI) * .1));
+    this.p.rotate(this.p.cos(this.animationPop * this.p.PI * 1.5) * .1);
+
     this.p.push();
     this.p.stroke(this.colors.main);
     this.p.strokeWeight(this.borderSize);
 
     /* Window Background */
+    this.p.fill(this.colors.main);
     this.p.rect(
-      this.getCenterX() - (.5 * this.getWidth()),
-      this.getCenterY() - (.5 * this.getHeight()),
+      (-.5 * this.getWidth()),
+      (-.5 * this.getHeight()),
       this.getWidth(),
       this.getHeight()
     );
 
     /* Bar */
-    this.p.fill(this.colors.main);
     this.p.rect(
-      this.getCenterX() - (.5 * this.getWidth()),
-      this.getCenterY() - (.5 * this.getHeight()),
+      (-.5 * this.getWidth()),
+      (-.5 * this.getHeight()),
       this.getWidth(),
       this.getBarHeight()
     );
@@ -123,26 +147,30 @@ export class DynamicWindow {
     this.p.fill(this.p.lerpColor(this.p.color(this.colors.text), this.p.color(this.colors.alt), this.animation));
     this.p.text(
       this.name,
-      this.getPosX() + (.5 * this.borderSize) + this.borderSize,
-      this.getPosY() + (.5 * this.borderSize) + (this.barHeight * 0.5) + (this.p.textSize() * .3)
+      (-.5 * this.getWidth()) + (.5 * this.borderSize) + this.borderSize,
+      (-.5 * this.getHeight()) + (.5 * this.borderSize) + (this.barHeight * 0.5) + (this.p.textSize() * .3)
     );
     this.p.pop();
 
+    /* When activate buttons fix the bar length in Home.ts file */
     //this.drawButton(1, 'X');
     //this.drawButton(2, 'O');
     //this.drawButton(3, '_');
     this.drawContent();
 
+    /* Border */
     this.p.push();
     this.p.noFill();
     this.p.strokeWeight(this.borderSize * .5);
     this.p.stroke(this.p.color(this.colors.border));
     this.p.rect(
-      -5 + this.getCenterX() - (.5 * this.getWidth()),
-      -5 + this.getCenterY() - (.5 * this.getHeight()),
+      -5 - (.5 * this.getWidth()),
+      -5 - (.5 * this.getHeight()),
       10 + this.getWidth(),
       10 + this.getHeight()
     );
+    this.p.pop();
+
     this.p.pop();
   }
 
@@ -168,8 +196,8 @@ export class DynamicWindow {
   private drawContent() {
     this.p.image(
       this.content,
-      this.getPosX() + (.5 * this.borderSize),
-      this.getPosY() + (.5 * this.borderSize) + this.getBarHeight(),
+      (-.5 * this.getWidth()) + (.5 * this.borderSize),
+      (-.5 * this.getHeight()) + (.5 * this.borderSize) + this.getBarHeight(),
       this.getImageWidth(),
       this.getImageHeight()
     );
@@ -178,8 +206,8 @@ export class DynamicWindow {
     this.p.tint(255, 255 * (1.0 - this.animation));
     this.p.image(
       this.contentGray,
-      this.getPosX() + (.5 * this.borderSize),
-      this.getPosY() + (.5 * this.borderSize) + this.getBarHeight(),
+      (-.5 * this.getWidth()) + (.5 * this.borderSize),
+      (-.5 * this.getHeight()) + (.5 * this.borderSize) + this.getBarHeight(),
       this.getImageWidth(),
       this.getImageHeight()
     );
@@ -193,6 +221,7 @@ export class DynamicWindow {
     if (this.hoverTitle(mouseX, mouseY)) return true;
     if (this.hoverBar(mouseX, mouseY) ||
       this.hoverContent(mouseX, mouseY)) {
+      if (!this.hover) this.animationPop = 0;
       this.hover = true;
       this.follow = true;
       this.followOffset.x = this.pos.x - mouseX;
@@ -225,11 +254,13 @@ export class DynamicWindow {
   ): boolean {
     if (this.hoverTitle(mouseX, mouseY)) {
       this.p.cursor(this.p.HAND);
+      if (!this.hover) this.animationPop = 0;
       this.hover = true;
       return true;
     }
     this.p.cursor(this.p.ARROW);
     if (this.hoverContent(mouseX, mouseY) || this.hoverBar(mouseX, mouseY)) {
+      if (!this.hover) this.animationPop = 0;
       this.hover = true;
       return true;
     }
@@ -244,7 +275,6 @@ export class DynamicWindow {
     pmouseY: number,
   ): boolean {
     if (this.follow) {
-      this.hover = false;
       this.follow = false;
       this.vel.x = mouseX - pmouseX;
       this.vel.y = mouseY - pmouseY;
@@ -331,7 +361,6 @@ export class DynamicWindow {
       const vel = this.p.abs((1 - this.squashY) * 1000);
       if (this.pos.y > 0) this.vel.y -= vel;
       else this.vel.y += vel;
-      this.updateBackground();
       return;
     }
 
@@ -341,7 +370,6 @@ export class DynamicWindow {
       const vel = this.p.abs((1 - this.squashX) * 1000);
       if (this.pos.x > 0) this.vel.x -= vel;
       else this.vel.x += vel;
-      this.updateBackground();
       return;
     }
   }

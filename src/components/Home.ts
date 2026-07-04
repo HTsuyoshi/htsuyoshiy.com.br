@@ -196,12 +196,17 @@ export const home = (p: p5) => {
     if (!mobile) updateMouse();
 
     for (const w of windows) w.update();
+    for (let i=windows.length - 1; i >= 0; i--) windows[i].drawShadow();
     for (let i=windows.length - 1; i >= 0; i--) windows[i].draw();
   };
 
   p.touchStarted = () => {
     if (smallScreen || !mobile) return;
-    if (mobile) updateTouch();
+    if (mobile) {
+      updateTouch();
+      updateTouch();
+    }
+
     for (const w of windows) {
       if (w.mousePressed(touchX, touchY)) {
         const redirect = w.getRedirect();
@@ -228,8 +233,12 @@ export const home = (p: p5) => {
 
   p.touchEnded = () => {
     if (smallScreen || !mobile) return;
-    for (const w of windows)
-      if (w.mouseReleased(touchX, touchY, ptouchX, ptouchY)) return;
+    for (const w of windows){
+      if (w.mouseReleased(touchX, touchY, ptouchX, ptouchY)) {
+        w.setHover(false);
+        return;
+      }
+    }
   }
 
   p.mousePressed = () => {
@@ -253,9 +262,15 @@ export const home = (p: p5) => {
 
   p.mouseMoved = () => {
     if (smallScreen || mobile) return;
-    for (const w of windows) w.setHover(false);
-    for (const w of windows)
-      if (w.mouseMoved(mouseX, mouseY)) return;
+    let resetHover = false;
+    for (const w of windows) {
+      if (!resetHover) {
+        if (w.mouseMoved(mouseX, mouseY)) resetHover = true;
+      } else {
+        w.setHover(false);
+      }
+    }
+    return;
   }
 
   p.mouseDragged = () => {

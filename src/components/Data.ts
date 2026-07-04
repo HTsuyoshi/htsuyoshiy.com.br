@@ -53,7 +53,7 @@ export const homeWindows: (windowData)[] = [
 export const aboutWindows: windowData[] = [
   {
     name: 'Home',
-    ratio: 1,
+    ratio: .5,
     source: 'home.png',
     redirect: states.HOME,
     ready: true,
@@ -80,7 +80,7 @@ export const aboutWindows: windowData[] = [
 export const artWindows: windowData[] = [
   {
     name: 'Home',
-    ratio: 1,
+    ratio: .5,
     source: 'home.png',
     redirect: states.HOME,
     ready: true,
@@ -139,7 +139,7 @@ export const artWindows: windowData[] = [
 export const hobbiesWindows: windowData[] = [
   {
     name: 'Home',
-    ratio: 1,
+    ratio: .5,
     source: 'home.png',
     redirect: states.HOME,
     ready: true,
@@ -174,7 +174,7 @@ export const hobbiesWindows: windowData[] = [
 export const gameDevWindows: windowData[] = [
   {
     name: 'Home',
-    ratio: 1,
+    ratio: .5,
     source: 'home.png',
     redirect: states.HOME,
     ready: true,
