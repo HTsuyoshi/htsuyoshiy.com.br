@@ -17,6 +17,9 @@ export class DynamicWindow {
   protected content: p5.Image;
   protected contentGray: p5.Image;
   protected fontSize: number;
+  protected imageClose: p5.Image;
+  protected imageMinimize: p5.Image;
+  protected imageWindow: p5.Image;
 
   /* Interaction */
   private animationPop: number = 1.0;
@@ -27,11 +30,11 @@ export class DynamicWindow {
   private follow: boolean = false;
   private followOffset: { x: number, y: number } = { x: 0, y: 0 };
   private win: { [key: string]: number };
-  //private state: number = false;
 
   /* Settings */
   private borderSize: number = 4;
-  private barHeight: number = 20 + (this.borderSize * 2); // change to be the size of the text
+  private barHeight: number = 20 + (this.borderSize * 2);
+  private buttonSize: number = this.barHeight - (this.borderSize * 2);
 
   public constructor(
     p: p5,
@@ -42,8 +45,11 @@ export class DynamicWindow {
     redirect: (string|number),
     ready: boolean,
     image: p5.Image,
+    imageClose: p5.Image,
+    imageWindow: p5.Image,
+    imageMinimize: p5.Image,
     fontSize: number,
-    win: { [key: string]: number }
+    win: { [key: string]: number },
   ) {
     this.p = p;
     this.pos = { x: pos.x - (size.w * .5), y: pos.y - (size.h * .5) };
@@ -53,9 +59,13 @@ export class DynamicWindow {
 
     this.name = name;
     this.image = image;
+    this.imageClose = imageClose;
+    this.imageMinimize = imageMinimize;
+    this.imageWindow = imageWindow;
     this.content = this.p.createImage(this.size.w, this.size.h);
     this.contentGray = this.p.createImage(this.size.w, this.size.h);
     this.fontSize = fontSize;
+
 
     this.redirect = redirect;
     this.ready = ready;
@@ -147,16 +157,14 @@ export class DynamicWindow {
     this.p.fill(this.p.lerpColor(this.p.color(this.colors.text), this.p.color(this.colors.alt), this.animation));
     this.p.text(
       this.name,
-      (-.5 * this.getWidth()) + (.5 * this.borderSize) + this.borderSize,
+      (-.5 * this.getWidth()) + (1.5 * this.borderSize),
       (-.5 * this.getHeight()) + (.5 * this.borderSize) + (this.barHeight * 0.5) + (this.p.textSize() * .3)
     );
-    this.p.pop();
 
-    /* When activate buttons fix the bar length in Home.ts file */
-    //this.drawButton(1, 'X');
-    //this.drawButton(2, 'O');
-    //this.drawButton(3, '_');
+    this.drawButtons();
     this.drawContent();
+
+    this.p.pop();
 
     /* Border */
     this.p.push();
@@ -174,24 +182,30 @@ export class DynamicWindow {
     this.p.pop();
   }
 
-  //private drawButton(i: number, text: string) {
-  //  const buttonSize = this.barHeight - (this.borderSize * 2);
+  private drawButtons() {
+    /* Fix buttom top padding */
+    const x = (.5 * this.getWidth()),
+      y = (-.5 * this.getHeight()) + this.borderSize;
 
-  //  this.p.push();
-  //  this.p.fill(this.colors.text);
-  //  this.p.rect(
-  //    this.pos.x + this.getWidth() - ((this.borderSize + buttonSize) * i),
-  //    this.pos.y + this.borderSize,
-  //    buttonSize, buttonSize
-  //  );
-  //  this.p.fill(this.colors.main);
-  //  this.p.text(
-  //    text,
-  //    this.pos.x + this.getWidth() - ((this.borderSize + buttonSize) * i) + (this.p.textWidth(text) * .5),
-  //    this.pos.y + this.borderSize + this.fontSize
-  //  );
-  //  this.p.pop();
-  //}
+    this.p.push();
+    this.p.noStroke();
+    this.p.image(
+      this.imageClose,
+      x - ((this.buttonSize + this.borderSize) * 1), y,
+      this.buttonSize, this.buttonSize
+    );
+    this.p.image(
+      this.imageWindow,
+      x - ((this.buttonSize + this.borderSize) * 2), y,
+      this.buttonSize, this.buttonSize
+    );
+    this.p.image(
+      this.imageMinimize,
+      x - ((this.buttonSize + this.borderSize) * 3), y,
+      this.buttonSize, this.buttonSize
+    );
+    this.p.pop();
+  }
 
   private drawContent() {
     this.p.image(
@@ -285,8 +299,8 @@ export class DynamicWindow {
 
   /* Logic functions */
   private hoverTitle(mouseX: number, mouseY: number): boolean {
-    if (mouseX > this.getPosX() &&
-        mouseX < this.getPosX() + (this.squashX * this.p.textWidth(this.name)) &&
+    if (mouseX > this.getPosX() + (this.borderSize * .5) &&
+        mouseX < this.getPosX() + (this.squashX * this.p.textWidth(this.name)) + (this.borderSize * .5) &&
         mouseY > this.getPosY() &&
         mouseY < this.getPosY() + this.getBarHeight()) return true;
     return false;
@@ -381,7 +395,7 @@ export class DynamicWindow {
   protected getWidth(): number { return this.getImageWidth() + this.borderSize; }
   protected getHeight(): number { return this.getImageHeight() + this.getBarHeight() + this.borderSize; }
 
-  /* Fix squash */
+  /* Pos after fixing squash */
   protected getPosX(): number { return this.pos.x - (.5 * this.borderSize); }
   protected getPosY(): number { return this.pos.y - (.5 * this.borderSize); }
   protected getCenterX(): number { return this.getPosX() + (.5 * this.getWidth()); }
@@ -407,7 +421,8 @@ export class DynamicWindow {
     if (this.squashY > .7) this.squashY -= .02;
   }
   protected squashHorizontal(): void {
-    if (this.squashX > .7) this.squashX -= .02;
+    if (this.squashX > .7 &&
+      (this.getWidth() > (this.p.textWidth(this.name) + this.borderSize) + (this.borderSize + ((this.buttonSize + this.borderSize) * 3)) + this.borderSize)) this.squashX -= .02;
     if (this.squashY < 1.5) this.squashY += .02;
   }
 

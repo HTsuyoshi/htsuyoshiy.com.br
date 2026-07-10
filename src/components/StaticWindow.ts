@@ -11,10 +11,13 @@ export class StaticWindow extends DynamicWindow {
     redirect: (string|number),
     ready: boolean,
     image: p5.Image,
+    imageClose: p5.Image,
+    imageMinimize: p5.Image,
+    imageWindow: p5.Image,
     fontSize: number,
     win: { [key: string]: number },
   ) {
-    super(p, pos, size, colors, name, redirect, ready, image, fontSize, win);
+    super(p, pos, size, colors, name, redirect, ready, image, imageClose, imageMinimize, imageWindow, fontSize, win);
     this.content.copy(
       this.image,
       0, 0, this.image.width, this.image.height,

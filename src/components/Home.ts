@@ -6,7 +6,6 @@ import type { windowData } from './Data.ts';
 import p5 from 'p5';
 
 export const home = (p: p5) => {
-  // Remove this comment
   p.disableFriendlyErrors = true;
 
   /* Constants */
@@ -83,7 +82,6 @@ export const home = (p: p5) => {
   }
 
   function drawBackground() {
-    //p.background(colors.bg);
     p.image(background, win.left, win.top, win.width, win.height);
   }
 
@@ -91,7 +89,7 @@ export const home = (p: p5) => {
     background = p.createGraphics(win.width, win.height, p.WEBGL);
     background.background(colors.bg);
     const dist = 30;
-    background.stroke('#000000');
+    background.stroke('#232323');
     for (let i=win.left; i<win.right; i+=dist) background.line(i, win.top, i, win.bottom);
     for (let i=win.top; i<win.bottom; i+=dist) background.line(win.left, i, win.right, i);
   }
@@ -137,11 +135,19 @@ export const home = (p: p5) => {
         newWindow: (DynamicWindow|StaticWindow);
       if (data.static) {
         size.h = size.w * (images[data.name].height/images[data.name].width);
-        newWindow = new StaticWindow(p, pos, size, colors, data.name, data.redirect, data.ready, images[data.name], fontSize, win);
+        newWindow = new StaticWindow(p, pos, size, colors, data.name, data.redirect, data.ready, images[data.name], images['close'], images['window'], images['minimize'], fontSize, win);
       } else {
-        newWindow = new DynamicWindow(p, pos, size, colors, data.name, data.redirect, data.ready, images[data.name], fontSize, win);
+        newWindow = new DynamicWindow(p, pos, size, colors, data.name, data.redirect, data.ready, images[data.name], images['close'], images['window'], images['minimize'], fontSize, win);
       }
       windows.push(newWindow);
+
+    }
+
+    /* Change interpolation to nearest */
+    if ((p as any)._renderer) {
+      (p as any)._renderer.getTexture(images['minimize']).setInterpolation(p.NEAREST, p.NEAREST);
+      (p as any)._renderer.getTexture(images['window']).setInterpolation(p.NEAREST, p.NEAREST);
+      (p as any)._renderer.getTexture(images['close']).setInterpolation(p.NEAREST, p.NEAREST);
     }
   }
 
@@ -156,6 +162,9 @@ export const home = (p: p5) => {
     for (const v of artWindows) images[v.name] = await p.loadImage(`${base}/${v.source}`);
     for (const v of hobbiesWindows) images[v.name] = await p.loadImage(`${base}/${v.source}`);
     for (const v of gameDevWindows) images[v.name] = await p.loadImage(`${base}/${v.source}`);
+    images['minimize'] = await p.loadImage(`${base}/buttons/minimize.png`);
+    images['window'] = await p.loadImage(`${base}/buttons/window.png`);
+    images['close'] = await p.loadImage(`${base}/buttons/close.png`);
 
     setupApp();
   }
@@ -163,6 +172,7 @@ export const home = (p: p5) => {
   p.setup = () => {
     /* Canvas settings */
     p.createCanvas(win.width, win.height, p.WEBGL);
+
     p.frameRate(60);
     p.pixelDensity(1);
     p.setAttributes({
